@@ -1,0 +1,3 @@
+# Downloaded benchmarks; re-fetch with benchmarks/fetch-scripts/*
+/benchmarks/*/
+!/benchmarks/fetch-scripts/
