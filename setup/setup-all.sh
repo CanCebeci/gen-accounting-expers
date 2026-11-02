@@ -11,7 +11,6 @@ done
 
 "$SETUP_DIR/install-z3.sh"
 "$SETUP_DIR/install-mariposa-slim.sh"
-"$SETUP_DIR/fetch-bench-scripts.sh"
 "$SETUP_DIR/fetch-benchmarks.sh"
 
 echo

@@ -11,6 +11,8 @@ default every dependency and benchmark is pinned to the commit that run used.
   repository.
 - `setup/` has scripts that install dependencies into `deps/` and fetch the benchmarks.
 - `experiments/` has the scripts that run experiments and write to `results/`.
+  `experiments/mariposa-wrappers/` holds adapted copies of the driver scripts
+  from Z3Prover/bench (see below).
 
 `deps/`, `results/` and the downloaded benchmarks are git-ignored.
 
@@ -25,14 +27,9 @@ experiments/mariposa-instability.sh   # run the instability experiment
 
 - `git`, `make`, a C++ compiler, `python3` with `venv`, and `cargo` (Rust).
   `setup-all.sh` checks for these first and exits if one is missing.
-- Read access to the private repo
-  [Z3Prover/bench](https://github.com/Z3Prover/bench). It is used to fetch both the
-  benchmarks and the experiment driver scripts. By default it is cloned over SSH,
-  so you need a GitHub SSH key with access. To use HTTPS (e.g. with `gh auth`
-  credentials), set:
-  ```sh
-  export BENCH_REPO_URL=https://github.com/Z3Prover/bench.git
-  ```
+
+Everything is fetched over HTTPS from public GitHub repos, so you don't need
+GitHub credentials.
 
 # Setup
 
@@ -44,18 +41,20 @@ step on its own.
 | --- | --- |
 | `setup/install-z3.sh [jobs]` | Builds Z3 into `deps/z3/build/z3`. `jobs` defaults to `nproc`. |
 | `setup/install-mariposa-slim.sh` | Checks out [mariposa-slim](https://github.com/CanCebeci/mariposa-slim) into `deps/mariposa-slim`, points its `z3_local` solver at the Z3 built above, adds the `default_48procs` experiment config (see below), builds `smt2action` with cargo, and creates a Python venv in `deps/venv` from `setup/requirements.txt`. |
-| `setup/fetch-bench-scripts.sh` | Copies the driver scripts (`instability-bench.sh`, `mariposa-wrappers/`) from Z3Prover/bench into `deps/bench-scripts`, then patches them (see below). |
 | `setup/fetch-benchmarks.sh [--force]` | Runs every script in `benchmarks/fetch-scripts/`. `--force` re-downloads benchmarks that are already there. |
 
-## Patches to the upstream driver scripts
+## Driver scripts copied from Z3Prover/bench
 
-`fetch-bench-scripts.sh` makes two changes to the copied scripts:
+`experiments/mariposa-wrappers/` contains `instability-bench.sh`,
+`run_mariposa.sh` and `get_csv.sh`. They are copied from the private Z3Prover/bench
+repo at `f4446738` and committed here, so the setup doesn't need access to that
+repo. Each file's header comment lists what was changed:
 
-- `run_mariposa.sh` hardcodes `~/mariposa-slim`. The copy uses
-  `$MARIPOSA_SLIM_DIR` (i.e. `deps/mariposa-slim`) instead.
-- `get_csv.sh` uses the `sqlite3` CLI when it is installed. That writes CSV output
-  in a format `instability-bench.sh` doesn't parse, so every count comes out as 0.
-  The copy always uses the Python fallback, which is what the counting expects.
+- `instability-bench.sh` and `run_mariposa.sh` use paths in this repo
+  (`benchmarks/`, `$MARIPOSA_SLIM_DIR`) instead of hardcoded paths under `$HOME`.
+- `get_csv.sh` always uses Python's `sqlite3` module. Upstream uses the `sqlite3`
+  CLI when it is installed, but `instability-bench.sh` can't parse the CLI's
+  output format, so every count came out as 0.
 
 ## Pinned versions and overrides
 
@@ -66,12 +65,12 @@ matching environment variable when you run the setup scripts:
 | --- | --- |
 | `Z3_REPO_URL`, `Z3_COMMIT` | `Z3Prover/z3` @ `30c74fcc` |
 | `MARIPOSA_REPO_URL`, `MARIPOSA_COMMIT` | `CanCebeci/mariposa-slim` @ `79ec55b7` |
-| `BENCH_REPO_URL`, `BENCH_COMMIT` | `Z3Prover/bench` (SSH) @ `f4446738` |
 | `DEPS_DIR` | `deps/` |
 
 For example, `Z3_COMMIT=<sha> setup/install-z3.sh` builds another Z3 version.
 `deps/z3` holds one Z3 checkout at a time, so this replaces the existing build.
-The benchmark fetch script reads `BENCH_REPO_URL` and `BENCH_COMMIT` as well.
+The benchmark fetch script has its own overrides: `MARIPOSA_DATA_REPO_URL`
+and `MARIPOSA_DATA_COMMIT` (default `secure-foundations/mariposa-data` @ `06d0c0a7`).
 
 The Python packages in `setup/requirements.txt` are unpinned, as in the upstream
 workflow. That file lists the versions the reference run had.
@@ -80,7 +79,13 @@ workflow. That file lists the versions the reference run had.
 
 | Benchmark | Fetch script | Contents |
 | --- | --- | --- |
-| `benchmarks/mariposa-unsat-core/` | `fetch-mariposa-unsat-core.sh` | 58 `.smt2` queries (~280 MB) from `inputs/mariposa/unstable_core` in Z3Prover/bench. This is the workflow's default benchmark. |
+| `benchmarks/mariposa-unsat-core/` | `fetch-mariposa-unsat-core.sh [--force] [--all]` | 58 `.smt2` queries (~280 MB) from `benchmarks/unstable_core` in [secure-foundations/mariposa-data](https://github.com/secure-foundations/mariposa-data), downloaded with a shallow sparse clone. |
+
+`mariposa-unsat-core` matches the default benchmark of the reference workflow.
+mariposa-data's `unstable_core` has 60 queries, but the workflow's copy leaves out
+`s_komodo-1504.4.smt2` and `s_komodo-1509.4.smt2`, so the fetch script excludes
+them too. The other 58 are byte-identical to the workflow's copies. Pass `--all`
+to include the two extra queries.
 
 Each fetched benchmark directory has a `SOURCE` file that records the repo, commit
 and path it was fetched from. To add a benchmark, put a new `*.sh` script in
@@ -122,7 +127,7 @@ Each run writes to `results/mariposa-instability/<bench>-<YYYYmmdd-HHMMSS>/`:
 | `mariposa_summary.csv` | One row per query: `unsat_count`, `unknown_count`, `timeout_count`, `status`, `elapsed_sec` |
 | `mariposa_res.csv` | Per-mutant results for the last query only |
 | `mariposa-logs/` | One mariposa log per query (`mariposa_run_<i>.log`) |
-| `META.txt` | Host, core count, Z3/mariposa/bench-scripts versions, arguments, start/end times and exit status |
+| `META.txt` | Host, core count, Z3 and mariposa-slim versions, arguments, start/end times and exit status |
 
 ## Running tools by hand
 

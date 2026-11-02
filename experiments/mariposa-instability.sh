@@ -31,7 +31,6 @@ Mariposa instability summary run
 Host: $(hostname) ($(nproc) cores)
 Z3: $Z3_COMMIT ($("$Z3_BIN" -version))
 mariposa-slim: $(git -C "$MARIPOSA_SLIM_DIR" rev-parse HEAD)
-bench scripts: $BENCH_COMMIT
 Benchmark dir: $BENCH_DIR
 Experiment: $EXP
 Solver key: $SOLVER
@@ -40,7 +39,7 @@ EOF
 
 export MARIPOSA_LOG_EXPORT_DIR="$OUT_DIR/mariposa-logs"
 status=0
-"$BENCH_SCRIPTS_DIR/instability-bench.sh" "$BENCH_DIR" "$EXP" "$SOLVER" \
+"$REPO_ROOT/experiments/mariposa-wrappers/instability-bench.sh" "$BENCH_DIR" "$EXP" "$SOLVER" \
   |& tee "$OUT_DIR/instability-bench-output.txt" || status=$?
 echo "Finished: $(date -Iseconds) (exit $status)" >> "$OUT_DIR/META.txt"
 
