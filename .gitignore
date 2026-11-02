@@ -1,3 +1,10 @@
 # Downloaded benchmarks; re-fetch with benchmarks/fetch-scripts/*
 /benchmarks/*/
 !/benchmarks/fetch-scripts/
+
+# Installed dependencies; re-create with setup/setup-all.sh
+/deps/
+
+# Benchmark results
+
+results/

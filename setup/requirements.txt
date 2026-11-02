@@ -1,0 +1,13 @@
+# mariposa-slim Python deps. Unpinned, as in the workflow; the reference run
+# (Python 3.12) had: numpy 2.4.6, pandas 3.0.3, networkx 3.6.1,
+# matplotlib 3.10.9, sexpdata 1.0.2, statsmodels 0.14.6, tabulate 0.10.0,
+# tqdm 4.67.3, z3-solver 4.16.0.0
+numpy
+pandas
+networkx
+matplotlib
+sexpdata
+statsmodels
+tabulate
+tqdm
+z3-solver
