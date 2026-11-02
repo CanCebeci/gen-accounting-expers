@@ -1,24 +1,13 @@
 #!/usr/bin/env bash
-# Install mariposa-slim at $MARIPOSA_COMMIT into deps/mariposa-slim: point its
-# z3_local solver at our Z3 build, build smt2action, and create the Python venv.
+# Install mariposa-slim at $MARIPOSA_COMMIT into deps/mariposa-slim: add an
+# experiment config, build smt2action, and create the Python venv. Z3 builds are
+# registered as mariposa solvers when an experiment uses them (register_z3_solver).
 
 set -euo pipefail
 SETUP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SETUP_DIR/common.sh"
 
 checkout_commit "$MARIPOSA_REPO_URL" "$MARIPOSA_COMMIT" "$MARIPOSA_SLIM_DIR"
-
-python3 - "$MARIPOSA_SLIM_DIR/config/solvers.json" "$Z3_BIN" <<'PY'
-import json, sys
-path, z3 = sys.argv[1:]
-with open(path, encoding="utf-8") as f:
-    d = json.load(f)
-d.setdefault("z3_local", {})["path"] = z3
-with open(path, "w", encoding="utf-8") as f:
-    json.dump(d, f, indent=4)
-    f.write("\n")
-print(f"Set z3_local.path to {z3}")
-PY
 
 # "default" runs num_procs=60 workers, which oversubscribes machines with fewer
 # CPUs (the bench wrappers drop --n-workers). Add a copy capped at 48 workers.

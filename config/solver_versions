@@ -1,0 +1,7 @@
+# Named Z3 versions for setup/install-z3.sh and the experiment scripts.
+# One per line: <name> <full commit SHA, branch or tag> [repo]
+# repo is "owner/name" on GitHub or a full git URL; default: Z3Prover/z3.
+baseline    30c74fccee4d195424588e28574ecaf0f9335f2c   Z3Prover/z3
+z3-T        9d8370a13b38fa6916c681de350d99b683588f12   CanCebeci/z3
+z3-C-table  55a81244a69f9616f97c351448cef506ab7d8d37   CanCebeci/z3
+z3-C-enode  3f6a57e8a8cf7b73a1b459b5cf65899d6a043a4e   Z3Prover/z3

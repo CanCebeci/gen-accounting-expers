@@ -1,16 +1,30 @@
 #!/usr/bin/env bash
-# Build Z3 at $Z3_COMMIT into deps/z3/build/z3 (mirrors the workflow's build-z3 job).
-# Usage: install-z3.sh [jobs]   (default: nproc)
+# Build Z3 into deps/z3/<commit>/build/z3 (mirrors the workflow's build-z3 job).
+# Usage: install-z3.sh [version...]
+#   version  a name from config/solver_versions (fetched from the repo on its
+#            line, if any), or a full commit SHA, branch or tag of $Z3_REPO_URL
+#            (default: every name in config/solver_versions)
+# Set JOBS to change the number of parallel make jobs (default: nproc).
 
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-JOBS="${1:-$(nproc)}"
+JOBS="${JOBS:-$(nproc)}"
 
-checkout_commit "$Z3_REPO_URL" "$Z3_COMMIT" "$Z3_DIR"
-if [[ ! -f "$Z3_DIR/build/Makefile" ]]; then
-  (cd "$Z3_DIR" && ./configure)
+if [[ $# -eq 0 ]]; then
+  mapfile -t versions < <(z3_versions)
+else
+  versions=("$@")
 fi
-make -C "$Z3_DIR/build" -j"$JOBS"
 
-"$Z3_BIN" -version
+for version in "${versions[@]}"; do
+  commit="$(resolve_z3_version "$version")"
+  dir="$Z3_BUILDS_DIR/$commit"
+  echo "== Z3 $version ($commit)"
+  checkout_commit "$(z3_version_repo "$version")" "$commit" "$dir"
+  if [[ ! -f "$dir/build/Makefile" ]]; then
+    (cd "$dir" && ./configure)
+  fi
+  make -C "$dir/build" -j"$JOBS"
+  "$(z3_bin "$commit")" -version
+done

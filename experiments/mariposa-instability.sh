@@ -3,12 +3,13 @@
 # per-query results, mirroring the "Run instability summary" job of the
 # Z3Prover/bench "Mariposa Instability Summary" workflow.
 #
-# Usage: mariposa-instability.sh [bench_dir] [exp] [solver]
-#   bench_dir  default: benchmarks/mariposa-unsat-core
-#   exp        mariposa experiment config (default: default)
-#   solver     mariposa solver key (default: z3_local, i.e. deps/z3/build/z3)
+# Usage: mariposa-instability.sh [bench_dir] [exp] [z3_version]
+#   bench_dir   default: benchmarks/mariposa-unsat-core
+#   exp         mariposa experiment config (default: default)
+#   z3_version  a name from config/solver_versions, or a full commit SHA, branch
+#               or tag of Z3 (default: baseline). Built first if not yet built.
 #
-# Outputs go to results/mariposa-instability/<bench>-<timestamp>/:
+# Outputs go to results/mariposa-instability/<bench>-<z3_version>-<timestamp>/:
 #   instability-bench-output.txt  console output incl. the per-query table
 #   mariposa_summary.csv          per-query unsat/unknown/timeout counts
 #   mariposa_res.csv              per-mutant results of the last query
@@ -21,19 +22,25 @@ source "$REPO_ROOT/setup/env.sh"
 
 BENCH_DIR="$(realpath "${1:-$REPO_ROOT/benchmarks/mariposa-unsat-core}")"
 EXP="${2:-default}"
-SOLVER="${3:-z3_local}"
+Z3_VERSION="${3:-baseline}"
 
-OUT_DIR="$REPO_ROOT/results/mariposa-instability/$(basename "$BENCH_DIR")-$(date +%Y%m%d-%H%M%S)"
+Z3_COMMIT="$(resolve_z3_version "$Z3_VERSION")"
+if [[ ! -x "$(z3_bin "$Z3_COMMIT")" ]]; then
+  "$REPO_ROOT/setup/install-z3.sh" "$Z3_VERSION"
+fi
+SOLVER="$(register_z3_solver "$Z3_COMMIT")"
+
+OUT_DIR="$REPO_ROOT/results/mariposa-instability/$(basename "$BENCH_DIR")-${Z3_VERSION//\//-}-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$OUT_DIR/mariposa-logs"
 
 cat > "$OUT_DIR/META.txt" <<EOF
 Mariposa instability summary run
 Host: $(hostname) ($(nproc) cores)
-Z3: $Z3_COMMIT ($("$Z3_BIN" -version))
+Z3: $Z3_VERSION = $(z3_version_repo "$Z3_VERSION") @ $Z3_COMMIT ($("$(z3_bin "$Z3_COMMIT")" -version))
 mariposa-slim: $(git -C "$MARIPOSA_SLIM_DIR" rev-parse HEAD)
 Benchmark dir: $BENCH_DIR
 Experiment: $EXP
-Solver key: $SOLVER
+Mariposa solver key: $SOLVER
 Started: $(date -Iseconds)
 EOF
 
