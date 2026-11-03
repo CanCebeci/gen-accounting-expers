@@ -10,17 +10,17 @@ source "$SETUP_DIR/common.sh"
 checkout_commit "$MARIPOSA_REPO_URL" "$MARIPOSA_COMMIT" "$MARIPOSA_SLIM_DIR"
 
 # "default" runs num_procs=60 workers, which oversubscribes machines with fewer
-# CPUs (the bench wrappers drop --n-workers). Add a copy capped at 48 workers.
+# CPUs (the bench wrappers drop --n-workers). Add a copy capped at 50 workers.
 python3 - "$MARIPOSA_SLIM_DIR/config/expers.json" <<'PY'
 import json, sys
 path = sys.argv[1]
 with open(path, encoding="utf-8") as f:
     d = json.load(f)
-d["default_48procs"] = {**d["default"], "num_procs": 48}
+d["default_50procs"] = {**d["default"], "num_procs": 50}
 with open(path, "w", encoding="utf-8") as f:
     json.dump(d, f, indent=4)
     f.write("\n")
-print("Added experiment config default_48procs")
+print("Added experiment config default_50procs")
 PY
 
 (cd "$MARIPOSA_SLIM_DIR/src/smt2action" && cargo build --release)

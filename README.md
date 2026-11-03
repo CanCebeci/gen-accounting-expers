@@ -41,7 +41,7 @@ step on its own.
 | Script | What it does |
 | --- | --- |
 | `setup/install-z3.sh [version...]` | Builds each Z3 version into `deps/z3/<commit>/build/z3`. With no arguments it builds every version in `config/solver_versions`. Set `JOBS` to change the number of parallel make jobs (default: `nproc`). |
-| `setup/install-mariposa-slim.sh` | Checks out [mariposa-slim](https://github.com/CanCebeci/mariposa-slim) into `deps/mariposa-slim`, adds the `default_48procs` experiment config (see below), builds `smt2action` with cargo, and creates a Python venv in `deps/venv` from `setup/requirements.txt`. |
+| `setup/install-mariposa-slim.sh` | Checks out [mariposa-slim](https://github.com/CanCebeci/mariposa-slim) into `deps/mariposa-slim`, adds the `default_50procs` experiment config (see below), builds `smt2action` with cargo, and creates a Python venv in `deps/venv` from `setup/requirements.txt`. |
 | `setup/fetch-benchmarks.sh [--force]` | Runs every script in `benchmarks/fetch-scripts/`. `--force` re-downloads benchmarks that are already there. |
 
 ## Driver scripts copied from Z3Prover/bench
@@ -146,10 +146,10 @@ won't load if one is missing.
 The `default` config makes 33 mutants per query with a 60 s timeout and runs 60
 workers in parallel. The upstream wrappers ignore `--n-workers`, so on a machine
 with fewer than 60 cores this overloads the CPUs and can cause spurious timeouts.
-Use `default_48procs` instead, which is the same config with 48 workers:
+Use `default_50procs` instead, which is the same config with 50 workers:
 
 ```sh
-experiments/mariposa-instability.sh benchmarks/mariposa-unsat-core default_48procs baseline
+experiments/mariposa-instability.sh benchmarks/mariposa-unsat-core default_50procs baseline
 ```
 
 Each run writes to `results/mariposa-instability/<bench>-<z3_version>-<YYYYmmdd-HHMMSS>/`
