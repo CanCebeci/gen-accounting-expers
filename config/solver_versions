@@ -4,4 +4,9 @@
 baseline    30c74fccee4d195424588e28574ecaf0f9335f2c   Z3Prover/z3
 z3-T        9d8370a13b38fa6916c681de350d99b683588f12   CanCebeci/z3
 z3-C-table  55a81244a69f9616f97c351448cef506ab7d8d37   CanCebeci/z3
-z3-C-enode  3f6a57e8a8cf7b73a1b459b5cf65899d6a043a4e   Z3Prover/z3
+upstream-merged-Z3-C  3f6a57e8a8cf7b73a1b459b5cf65899d6a043a4e   Z3Prover/z3
+z3-C-enode  7a24d3ba78a19360b412e679c45b12a5a0381293   Z3Prover/z3
+z3-gen-4978dbe  4978dbe171777c9f095994c814247f0258b87115   CanCebeci/z3
+z3-gen-84935b3  84935b3746ed42c1222a02909cd50a8e25e3b1b1   Z3Prover/z3
+z3-gen-bc753b5  bc753b510db56fd452ef3c82e798b95212fc008f   Z3Prover/z3
+z3-gen-872cc0f  872cc0f3f1947618dc70f9ff7e4cc6e7072b935e   Z3Prover/z3
